@@ -11,6 +11,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import colosseum from './assets/colosseum.png'
 import blue from './assets/blue.jpeg'
 import typeface from '../static/fonts/helvetiker_regular.typeface.json'
+//this import syntax keeps the url intact even if changed by webpack
 let url = new URL('../static/fonts/helvetiker_regular.typeface.json', import.meta.url).href
 
 
