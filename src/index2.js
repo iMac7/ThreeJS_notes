@@ -6,26 +6,50 @@ import { AxesHelper, Camera } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls' //created just after camera below
 import gsap from 'gsap'
 import * as dat from 'dat.gui'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import colosseum from './assets/colosseum.png'
 import blue from './assets/blue.jpeg'
+import typeface from '../static/fonts/helvetiker_regular.typeface.json'
+let url = new URL('../static/fonts/helvetiker_regular.typeface.json', import.meta.url).href
 
 
 const loadingManager = new THREE.LoadingManager()
 // loadingManager.onStart = () => {
 //     console.log('onstart')
-// } 
+// }
 // loadingManager.onLoad = () => {
 //     console.log('onload')
-// } 
+// }
 // loadingManager.onProgress = () => {
 //     console.log('onprogress')
-// } 
+// }
 // loadingManager.onError = () => {
 //     console.log('onError')
-// } 
+// }
 
 
-const texture = new THREE.TextureLoader(loadingManager).load(blue)
+const texture = new THREE.TextureLoader(loadingManager).load(colosseum)
+ 
+const fontLoader = new FontLoader()
+const font = fontLoader.load(url , (loadedFont) => {
+    const textGeometry = new TextGeometry('just some text',{
+        font: loadedFont,
+        size: .5,
+        height: .2,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: .03,
+        bevelSize: .02,
+        bevelOffset: .0,
+        bevelSegments: 5
+    })
+    const textMaterial = new THREE.MeshBasicMaterial()
+    const text = new THREE.Mesh(textGeometry, textMaterial)
+    scene.add(text)
+    text.position.z = 2
+})
+console.log("font-", font)
 
 //Color is changed differently in debug UI because of the possible interpretations of its value (string), created different object for it to use in Debug UI
 const parameters = {color: '#000fff'} 
@@ -57,7 +81,7 @@ material.aoMapIntensity = 10
 material.displacementMap = texture
 material.displacementScale = .05
 material.metalnessMap = texture
-material.normalMap = texture
+// material.normalMap = texture
 material.normalScale.set(.5, .5)
 
 
@@ -72,7 +96,7 @@ const plane = new THREE.Mesh(
     material
 )
 plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2 ))
-console.log(plane.geometry)
+
 const torus = new THREE.Mesh(
     new THREE.TorusGeometry(1, .5, 10, 20),
     material
