@@ -10,7 +10,8 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import colosseum from './assets/colosseum.png'
 import blue from './assets/blue.jpeg'
-import typeface from '../static/fonts/helvetiker_regular.typeface.json'
+import earth from './assets/earth.png'
+import pexels from './assets/pexels.jpg'
 //this import syntax keeps the url intact even if changed by webpack
 let url = new URL('../static/fonts/helvetiker_regular.typeface.json', import.meta.url).href
 
@@ -30,7 +31,7 @@ const loadingManager = new THREE.LoadingManager()
 // }
 
 
-const texture = new THREE.TextureLoader(loadingManager).load(colosseum)
+const texture = new THREE.TextureLoader(loadingManager).load(pexels)
  
 const fontLoader = new FontLoader()
 const font = fontLoader.load(url , (loadedFont) => {
@@ -47,10 +48,9 @@ const font = fontLoader.load(url , (loadedFont) => {
     })
     const textMaterial = new THREE.MeshBasicMaterial()
     const text = new THREE.Mesh(textGeometry, textMaterial)
-    scene.add(text)
+    // scene.add(text)
     text.position.z = 2
 })
-console.log("font-", font)
 
 //Color is changed differently in debug UI because of the possible interpretations of its value (string), created different object for it to use in Debug UI
 const parameters = {color: '#000fff'} 
@@ -75,15 +75,15 @@ const geometry = new THREE.BoxGeometry(1,1,1, 2, 2, 2)
 
 // const material = new THREE.MeshPhongMaterial()
 
-const material = new THREE.MeshStandardMaterial({map: texture})
+const material = new THREE.MeshStandardMaterial()
 // material.metalness = .5
-material.aoMap = texture
-material.aoMapIntensity = 10
-material.displacementMap = texture
-material.displacementScale = .05
-material.metalnessMap = texture
+// material.aoMap = texture
+// material.aoMapIntensity = 10
+// material.displacementMap = texture
+// material.displacementScale = .05
+// material.metalnessMap = texture
 // material.normalMap = texture
-material.normalScale.set(.5, .5)
+// material.normalScale.set(.5, .5)
 
 
 const mesh = new THREE.Mesh(geometry, material)
@@ -92,11 +92,14 @@ const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(1, 16, 16), 
     material
 )
+sphere.castShadow = true
+
 const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
-    material
+    new THREE.MeshBasicMaterial()
 )
 plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2 ))
+plane.receiveShadow = true
 
 const torus = new THREE.Mesh(
     new THREE.TorusGeometry(1, .5, 10, 20),
@@ -105,8 +108,26 @@ const torus = new THREE.Mesh(
 scene.add(sphere, plane, torus)
 
 sphere.position.x = -2
-plane.position.x = .5
+plane.position.set(1, 0, -2)
 torus.position.x = 3.5
+
+// plane.rotateX(-2)
+plane.scale.set(5, 5)
+// plane.position.z = 1
+
+
+const ambientLight = new THREE.AmbientLight('green', .5)
+// scene.add(ambientLight)
+
+const pointLight = new THREE.PointLight('yellow', .8)
+pointLight.position.set(0, 0, 4)
+pointLight.castShadow = true
+scene.add(pointLight)
+const pointLightHelper = new THREE.PointLightHelper(pointLight, .3)
+scene.add(pointLightHelper)
+
+const sphereLight = new THREE.HemisphereLight('red', 'blue', .5)
+scene.add(sphereLight)
 
 //Debug UI. Works best with objects, properties are easily accessible
 const gui = new dat.GUI 
@@ -134,22 +155,19 @@ gui
 gui
 .addColor(parameters, 'color')
 .onChange(() => material.color.set(parameters.color))
+gui
+.add(pointLight, 'intensity')
+.min(0)
+.max(2)
+.step(.1)
 
-
-
-const canvas = document.querySelector(".webgl")
-
-const ambientLight = new THREE.AmbientLight('#fff', .7)
-// scene.add(ambientLight)
-
-const pointLight = new THREE.PointLight('#fff', 0.9)
-pointLight.position.set(2,3,4)
-scene.add(pointLight)
 
 const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
+
+const canvas = document.querySelector(".webgl")
 
 //Consistent width and height on resize
 window.addEventListener('resize', () => {
@@ -173,7 +191,7 @@ scene.add(axesHelper)
 const camera = new THREE.PerspectiveCamera(75, aspectRatio)
 // const camera = new THREE.OrthographicCamera(-1 * aspectRatio, 1 * aspectRatio, 1, -1, .001, 100)
 // camera.position.set(2, 2, 2 )
-camera.position.z = 4
+camera.position.z = 10
 camera.lookAt(mesh.position)
 
 scene.add(camera)
@@ -188,7 +206,8 @@ controls.update()
 //Renderer
 const renderer = new THREE.WebGLRenderer({ canvas: canvas })
 renderer.setSize(sizes.width, sizes.height)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)) 
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.shadowMap.enabled = true
 
 // gsap.to(mesh.position, {duration: 1, delay: 1, x: 3})
 
