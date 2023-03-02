@@ -6,7 +6,8 @@ module.exports = {
     entry: {
         // index: './src/index.js',
         // index2: './src/index2.js',
-        house: './src/house.js'
+        // house: './src/house.js',
+        particles: './src/particles.js'
       },
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -32,7 +33,7 @@ module.exports = {
             title: "WP app",
             filename: "index.html",
             template: "src/index.html",
-            chunks: ["index", "index2", "house"]
+            chunks: ["index", "index2", "house", "particles"]
 
         })
     ],
