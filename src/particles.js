@@ -2,7 +2,7 @@
 
 import './style.css'
 import * as THREE from 'three'
-import { AxesHelper, Camera } from 'three'
+import { AxesHelper, Camera, MOUSE } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls' //created just after camera below
 import gsap from 'gsap'
 import * as dat from 'dat.gui'
@@ -20,7 +20,7 @@ const loadingManager = new THREE.LoadingManager()
  
 
 //Color is changed differently in debug UI because of the possible interpretations of its value (string), created different object for it to use in Debug UI
-const parameters = {color: '#000fff'} 
+// const parameters = {color: '#000fff'} 
 
 //Scene
 const scene = new THREE.Scene()
@@ -42,42 +42,82 @@ const scene = new THREE.Scene()
 
 
 
+
 // Galaxy
+const parameters = {
+    count: 100000,
+    size: .02,
+    spreadMultiplier: 5,
+    insideColor: '#ff6030',
+    outsideColor: '#1b3984'
+}
+
+let galaxyGeometry = null
+let galaxyMaterial = null
+let points = null
+
+function generateGalaxy() {
+
+if(points) {
+    // deletes from the scene
+    galaxyGeometry.dispose()
+    galaxyMaterial.dispose()
+    scene.remove(points)
+}
+
+galaxyGeometry = new THREE.BufferGeometry()
+
+const positions = new Float32Array(parameters.count * 3)
+// RGB
+const colors = new Float32Array(parameters.color * 3)
+const insideColor = new THREE.Color(parameters.insideColor)
+const outsideColor = new THREE.Color(parameters.outsideColor)
+
+for (let i = 0; i < parameters.count; i++) {
+    let i3 = i * 3
+    // to update x, y and z
+    positions[i3 + 0] = (Math.random() - .5) * parameters.spreadMultiplier
+    positions[i3 + 1] = (Math.random() - .5) * parameters.spreadMultiplier
+    positions[i3 + 2] = (Math.random() - .5) * parameters.spreadMultiplier
+
+    // cloned to avoid unexpected results overwriting the insidecolor above
+    const mixedColor = insideColor.clone()
+    // lerp = 'mixing ratio'
+    mixedColor.lerp(outsideColor, 1)
+    //update R G B
+    colors[i3 + 0] = mixedColor.r
+    colors[i3 + 1] = mixedColor.g
+    colors[i3 + 2] = mixedColor.b
+    
+}
+
+galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
+galaxyMaterial = new THREE.PointsMaterial({
+    size: parameters.size,
+    sizeAttenuation: true,
+    depthWrite: false,
+    // blending: THREE.AdditiveBlending,
+    // vertexColors: true,
+    color: parameters.insideColor
+    
+})
+
+points = new THREE.Points(galaxyGeometry, galaxyMaterial)
+scene.add(points)
+
+}
+
+generateGalaxy()
 
 
 
-
-//Debug UI. Works best with objects, properties are easily accessible
+// DEBUG UI
 const gui = new dat.GUI 
-// position, axis, min, max, step
-// gui.add(mesh.position, 'y',  -3, 3, .01)
-// alternative way to add some parameters not present in above
-// gui
-// .add(mesh.position, 'y')
-// .min(-3)
-// .max(3)
-// .step(.01)
-// .name("elevation")
-// gui
-// .add(mesh, 'visible') //automatically puts a checkbox for boolean attribute visible, same for wireframe below
-// gui
-// .add(material, 'wireframe')
-// gui
-// .add(material, 'metalness').min(0).max(1).step(.001)
-// gui
-// .add(material, 'roughness').min(0).max(1).step(.001)
-// gui
-// .add(material, 'aoMapIntensity').min(0).max(20).step(.001)
-// gui
-// .add(material, 'displacementScale').min(0).max(3).step(.001)
-// gui
-// .addColor(parameters, 'color')
-// .onChange(() => material.color.set(parameters.color))
-// gui
-// .add(pointLight, 'intensity')
-// .min(0)
-// .max(2)
-// .step(.1)
+gui.add(parameters, 'count').min(100).max(100000).step(1000).onFinishChange(generateGalaxy)
+gui.add(parameters, 'size').min(.001).max(.1).step(.01).onFinishChange(generateGalaxy)
+gui.add(parameters, 'spreadMultiplier').min(1).max(100).step(1).onFinishChange(generateGalaxy)
+
 
 
 const sizes = {
