@@ -2,16 +2,31 @@
 
 import './style.css'
 import * as THREE from 'three'
-import { AxesHelper, Camera } from 'three'
+import { AxesHelper, Camera, TextureLoader } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls' //created just after camera below
 import testVertexShader from './shaders/vertex.glsl'
 import testFragmentShader from './shaders/fragment.glsl'
+import flag from './assets/kenya.png'
  
 //Scene
 const scene = new THREE.Scene()
 const geometry = new THREE.BoxGeometry(1,1,1, 2, 2, 2)
+const flagTexture = new TextureLoader().load(flag)
 
-// const material = new THREE.MeshBasicMaterial({map: texture})
+const rawShaderMaterial = new THREE.RawShaderMaterial({
+    vertexShader: testVertexShader,
+    fragmentShader: testFragmentShader,
+    transparent: true,
+    // wireframe: true,
+    side: THREE.DoubleSide,
+    uniforms: {
+        //started with u for uniforms
+        uFrequency: {value: new THREE.Vector2(10, 5)},
+        uTime: {value: 0},
+        uTexture: {value: flagTexture}
+    }
+})
+
 
 
 const material = new THREE.MeshStandardMaterial()
@@ -20,28 +35,29 @@ const mesh = new THREE.Mesh(geometry, material)
 
 const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(1, 16, 16), 
-    new THREE.RawShaderMaterial({
-        vertexShader: testVertexShader,
-        fragmentShader: testFragmentShader
-    })
+    // material,
+    rawShaderMaterial
 )
 sphere.castShadow = true
 
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
-    new THREE.MeshBasicMaterial()
+    new THREE.PlaneGeometry(1, 1, 10, 10),
+    //     side: THREE.DoubleSide,
+    rawShaderMaterial
 )
 plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2 ))
 plane.receiveShadow = true
 
 const torus = new THREE.Mesh(
     new THREE.TorusGeometry(1, .5, 10, 20),
-    material
+    rawShaderMaterial
 )
-scene.add(sphere, plane, torus)
+scene.add(plane)
+
+
 
 sphere.position.x = -2
-plane.position.set(1, 0, -2)
+plane.position.set(2, 2, -2)
 torus.position.x = 3.5
 
 // plane.rotateX(-2)
@@ -97,19 +113,16 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
 
-// gsap.to(mesh.position, {duration: 1, delay: 1, x: 3})
-
-// renderer.render(scene, camera)
-
-
 
 const clock = new THREE.Clock()
 
-
+//Animation function
 function tick() {
     const elapsedTime = clock.getElapsedTime()
     //Must be called on each render to update controls e.g. damping controls
     controls.update()
+
+    rawShaderMaterial.uniforms.uTime.value = elapsedTime
 
     renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
