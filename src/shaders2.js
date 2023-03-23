@@ -6,6 +6,10 @@ import { AxesHelper, Camera, TextureLoader } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls' //created just after camera below
 import testVertexShader from './shaders/shaders2/vertex.glsl'
 import testFragmentShader from './shaders/shaders2/fragment.glsl'
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer'
+import {GlitchPass} from 'three/examples/jsm/postprocessing/GlitchPass'
+import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass'
+import {DotScreenPass} from 'three/examples/jsm/postprocessing/DotScreenPass'
  
 //Scene
 const scene = new THREE.Scene()
@@ -48,8 +52,6 @@ const torus = new THREE.Mesh(
 )
 scene.add(plane)
 
-
-
 sphere.position.x = -2
 plane.position.set(2, 2, -2)
 torus.position.x = 3.5
@@ -83,17 +85,14 @@ window.addEventListener('resize', () => {
 })
 
 const aspectRatio = sizes.width / sizes.height
-
+//AxesHelper
 const axesHelper = new AxesHelper(3)
 scene.add(axesHelper)
-
 //Camera
 const camera = new THREE.PerspectiveCamera(75, aspectRatio)
 camera.position.z = 10
 camera.lookAt(mesh.position)
-
 scene.add(camera)
-
 //Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
@@ -110,6 +109,28 @@ renderer.shadowMap.enabled = true
 
 const clock = new THREE.Clock()
 
+
+
+//Postprocessing
+const effectComposer = new EffectComposer(renderer)
+effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+effectComposer.setSize(sizes.width, sizes.height)
+
+const renderPass = new RenderPass(scene, camera)
+effectComposer.addPass(renderPass) 
+
+// const glitchPass = new GlitchPass()
+// glitchPass.enabled = true
+// glitchPass.goWild = true
+// effectComposer.addPass(glitchPass)
+
+// const dotScreenPass = new DotScreenPass()
+// dotScreenPass.enabled = true
+// effectComposer.addPass(dotScreenPass) 
+
+
+
+
 //Animation function
 function tick() {
     const elapsedTime = clock.getElapsedTime()
@@ -118,7 +139,10 @@ function tick() {
 
     rawShaderMaterial.uniforms.uTime.value = elapsedTime
 
-    renderer.render(scene, camera)
+    // Commented out to change postprocessing renderer
+    // renderer.render(scene, camera)
+    effectComposer.render()
+
     window.requestAnimationFrame(tick)
 }
 tick()
