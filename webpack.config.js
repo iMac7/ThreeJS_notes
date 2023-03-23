@@ -14,7 +14,8 @@ module.exports = {
         // particles: './src/particles.js',
         // physics: './src/physics.js',
         // gltf: './src/gltf.js',
-        shaders: './src/shaders.js'
+        // shaders: './src/shaders.js',
+        shaders2: './src/shaders2.js'
       },
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -45,7 +46,7 @@ module.exports = {
             title: "WP app",
             filename: "index.html",
             template: "src/index.html",
-            chunks: ["index", "index2", "house", "particles", "physics", 'shaders']
+            chunks: ["index", "index2", "house", "particles", "physics", "shaders", "shaders2"]
 
         })
     ],
